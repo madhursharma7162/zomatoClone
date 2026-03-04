@@ -8,6 +8,14 @@ export default defineConfig({
   server: {
     port: 5174,
     strictPort:true,   // This stops it from jumping to 5174
-    host: "0.0.0.0"    // This helps Codespaces expose the port correctly
+    host: "0.0.0.0",    // This helps Codespaces expose the port correctly
+
+    proxy: {
+      "/api": {
+        target: "http://localhost:5001", // your restaurant service
+        changeOrigin: true,
+        secure: false
+      }
+    }
   }
 });

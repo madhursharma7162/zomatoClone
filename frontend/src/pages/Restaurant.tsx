@@ -108,8 +108,14 @@ const Restaurant = () => {
         </div>
 
         <div className="p-5">
-          {tab === "menu" && <MenuItems />}
-          {tab === "add-item" && <AddMenuItem onItemAdded={() => {}}/>}
+          {tab === "menu" && (
+            <MenuItems
+             items={menuItems}
+             onItemDeleted={ () => fetchMenuItems(restaurant._id)}
+             isSeller={true}
+            />
+          )}
+          {tab === "add-item" && <AddMenuItem onItemAdded={() => fetchMenuItems(restaurant._id)}/>}
           {tab === "sales" && <p>Sales Page</p>}
         </div>
       </div>
