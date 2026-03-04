@@ -15,7 +15,12 @@ const App = () => {
   const { user } = useAppData();
 
   if(user && user.role === "seller"){
-    return <Restaurant />
+    return (
+      <>
+        <Toaster position="top-right" />
+        <Restaurant />
+      </>
+    );
   }
   return (
     <>
@@ -30,10 +35,7 @@ const App = () => {
             <Route path="/select-role" element={<SelectRole />} />
             <Route path="/account" element={<Account />} />
           </Route>
-
-
         </Routes>
-        <Toaster />
       </BrowserRouter>
 
     </>
