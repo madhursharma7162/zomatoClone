@@ -1,0 +1,12 @@
+# General
+node_modules/
+dist/
+.DS_Store
+
+# SECRETS (This covers all folders!)
+.env
+.env.local
+.env.*
+
+# IDE
+.vscode/
