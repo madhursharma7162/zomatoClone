@@ -1,0 +1,33 @@
+# 1. Kill any hanging Docker processes
+sudo pkill dockerd 2>/dev/null
+sudo rm -f /var/run/docker.pid
+
+# 2. Setup the workspace socket
+sudo mkdir -p /workspace
+sudo chmod 777 /workspace
+
+# 3. Start the Docker daemon in the background
+sudo dockerd --host=unix:///workspace/docker.sock --storage-driver=vfs &
+
+# 4. Wait for the daemon to wake up
+echo "Waiting for Docker to start..."
+sleep 8
+
+# 5. Set the environment variable so you don't have to type --host every time
+export DOCKER_HOST=unix:///workspace/docker.sock
+
+# 6. Remove any existing container named 'rabbitmq-container' to avoid conflicts
+docker rm -f rabbitmq-container 2>/dev/null
+
+# 7. Start RabbitMQ with Management Plugin
+docker run -d \
+  --name rabbitmq-container \
+  -p 5672:5672 \
+  -p 15672:15672 \
+  -e RABBITMQ_DEFAULT_USER=admin \
+  -e RABBITMQ_DEFAULT_PASS=admin123 \
+  rabbitmq:3-management
+
+# 8. Check if it's running
+echo "--- Current Running Containers ---"
+docker ps

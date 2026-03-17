@@ -9,6 +9,7 @@ import "leaflet/dist/leaflet.css";
 
 export const authService = "https://bookish-space-waddle-jjx454p9jgqx3jqrp-5000.app.github.dev/api/auth";
 export const restaurantService = "https://bookish-space-waddle-jjx454p9jgqx3jqrp-5001.app.github.dev/";
+export const utilsService = "https://bookish-space-waddle-jjx454p9jgqx3jqrp-5002.app.github.dev/";
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
