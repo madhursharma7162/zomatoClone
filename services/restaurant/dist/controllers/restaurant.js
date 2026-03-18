@@ -11,7 +11,7 @@ export const addRestaurant = TryCatch(async (req, res) => {
         });
     }
     const existingRestaurant = await Restaurant.findOne({
-        ownerId: user._id,
+        ownerId: user._id.toString(),
     });
     if (existingRestaurant) {
         return res.status(400).json({
@@ -77,7 +77,16 @@ export const fetchMyRestaurant = TryCatch(async (req, res) => {
             message: "Please Login",
         });
     }
-    const restaurant = await Restaurant.findOne({ ownerId: req.user._id });
+    // 🔥 ADD THESE LOGS
+    console.log("Logged in user ID:", req.user._id);
+    const restaurant = await Restaurant.findOne({
+        ownerId: req.user._id.toString(),
+    });
+    console.log("Restaurant fetched:", restaurant);
+    if (restaurant) {
+        console.log("Restaurant ownerId:", restaurant.ownerId);
+    }
+    //---------------
     if (!restaurant) {
         return res.status(200).json({
             restaurant: null,
@@ -109,7 +118,7 @@ export const updateStatusRestaurant = TryCatch(async (req, res) => {
         });
     }
     const restaurant = await Restaurant.findOneAndUpdate({
-        ownerId: req.user._id,
+        ownerId: req.user._id.toString(),
     }, { isOpen: status }, { new: true });
     if (!restaurant) {
         return res.status(404).json({

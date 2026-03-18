@@ -10,6 +10,9 @@ import Restaurant, { IRestaurant } from "../models/Restaurant.js";
 
 export const createOrder = TryCatch(async (req: AuthenticatedRequest, res) => {
   const user = req.user;
+
+  console.log("USER ID:", user?._id); // 👈 HERE
+
   if (!user) {
     return res.status(401).json({
       message: "Unauthorized",
@@ -59,6 +62,8 @@ export const createOrder = TryCatch(async (req: AuthenticatedRequest, res) => {
   const cartItems = await Cart.find({ userId: user._id })
     .populate<{ itemId: IMenuItem }>("itemId")
     .populate<{ restaurantId: IRestaurant }>("restaurantId");
+
+    console.log("CART ITEMS:", cartItems); // 👈 HERE
 
   if (cartItems.length === 0) {
     return res.status(400).json({ message: "Cart is empty" });
@@ -386,16 +391,16 @@ export const assignRiderToOrder = TryCatch(async (req, res) => {
     });
   }
 
-  const orderUpdated = await Order.findOneAndUpdate(
-    { _id: orderId, riderId: null },
-    {
-      riderId,
-      riderName,
-      riderPhone,
-      status: "rider_assigned",
-    },
-    { new: true }
-  );
+ const orderUpdated = await Order.findOneAndUpdate(
+  { _id: orderId, riderId: null },
+  {
+    riderId,
+    riderName,
+    riderPhone,
+    status: "rider_assigned",
+  },
+  { returnDocument: "after" }   // ✅ FIX
+);
 
   await axios.post(
     `${process.env.REALTIME_SERVICE}/api/v1/internal/emit`,

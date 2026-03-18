@@ -25,7 +25,7 @@ const Login = () => {
             setLoading(false);
             setUser(result.data.user);
             setIsAuth(true);
-            navigate("/");
+            navigate("/select-role");
         } catch(error){
             console.log(error);
             toast.error("Problem while login");

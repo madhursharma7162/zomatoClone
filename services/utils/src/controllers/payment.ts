@@ -80,7 +80,7 @@ export const payWithStripe = async (req: Request, res: Response) => {
     const { orderId } = req.body;
 
     const { data } = await axios.get(
-      `${process.env.RESTAURANT_SERVICE}api/order/payment/${orderId}`,
+      `${process.env.RESTAURANT_SERVICE}/api/order/payment/${orderId}`,
       {
         headers: {
           "x-internal-key": process.env.INTERNAL_SERVICE_KEY,
@@ -116,11 +116,14 @@ export const payWithStripe = async (req: Request, res: Response) => {
     res.json({
       url: session.url,
     });
-  } catch (error) {
-    res.status(500).json({
-      message: "stripe payment failed",
-    });
-  }
+  } catch (error: any) {
+  console.error("🔥 STRIPE ERROR FULL:", error);
+
+  res.status(500).json({
+    message: "stripe payment failed",
+    error: error?.message || error,
+  });
+}
 };
 
 export const verifyStripe = async (req: Request, res: Response) => {

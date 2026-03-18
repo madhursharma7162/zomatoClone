@@ -17,7 +17,7 @@ export const addRestaurant = TryCatch(
     }
 
     const existingRestaurant = await Restaurant.findOne({
-      ownerId: user._id,
+      ownerId: user._id.toString(),
     });
 
     if (existingRestaurant) {
@@ -101,7 +101,20 @@ export const fetchMyRestaurant = TryCatch(
       });
     }
 
-    const restaurant = await Restaurant.findOne({ ownerId: req.user._id });
+    // 🔥 ADD THESE LOGS
+    console.log("Logged in user ID:", req.user._id);
+
+    const restaurant = await Restaurant.findOne({
+      ownerId: req.user._id.toString(),
+    });
+
+    console.log("Restaurant fetched:", restaurant);
+
+    if (restaurant) {
+      console.log("Restaurant ownerId:", restaurant.ownerId);
+    }
+
+    //---------------
 
     if (!restaurant) {
       return res.status(200).json({
@@ -148,7 +161,7 @@ export const updateStatusRestaurant = TryCatch(
 
     const restaurant = await Restaurant.findOneAndUpdate(
       {
-        ownerId: req.user._id,
+        ownerId: req.user._id.toString(),
       },
       { isOpen: status },
       { new: true },
@@ -199,10 +212,10 @@ export const updateRestaurant = TryCatch(
 );
 
 
-export const getNearByRestaurant = TryCatch(async(req, res) => {
-  const{ latitude, longitude, radius = 5000, search = ""} = req.query;
+export const getNearByRestaurant = TryCatch(async (req, res) => {
+  const { latitude, longitude, radius = 5000, search = "" } = req.query;
 
-  if( !latitude || !longitude ){
+  if (!latitude || !longitude) {
     return res.status(400).json({
       message: "Latitude and Longitude are required",
     });
@@ -212,8 +225,8 @@ export const getNearByRestaurant = TryCatch(async(req, res) => {
     isVerified: true,
   };
 
-  if( search && typeof search === "string"){
-    query.name = { $regex: search, $options: "i"};
+  if (search && typeof search === "string") {
+    query.name = { $regex: search, $options: "i" };
   }
 
   const restaurants = await Restaurant.aggregate([
@@ -232,16 +245,16 @@ export const getNearByRestaurant = TryCatch(async(req, res) => {
       },
     },
     {
-      $sort:{
+      $sort: {
         isOpen: -1,
         distance: 1,
       }
     },
 
     {
-      $addFields:{
-        distanceKm:{
-          $round: [{ $divide: ["$distance", 1000]}, 2],
+      $addFields: {
+        distanceKm: {
+          $round: [{ $divide: ["$distance", 1000] }, 2],
         },
       },
     },
