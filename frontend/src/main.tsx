@@ -12,6 +12,8 @@ export const authService = "https://bookish-space-waddle-jjx454p9jgqx3jqrp-5000.
 export const restaurantService = "https://bookish-space-waddle-jjx454p9jgqx3jqrp-5001.app.github.dev/";
 export const utilsService = "https://bookish-space-waddle-jjx454p9jgqx3jqrp-5002.app.github.dev/";
 export const realtimeService = "https://bookish-space-waddle-jjx454p9jgqx3jqrp-5004.app.github.dev/";
+export const riderService = "https://bookish-space-waddle-jjx454p9jgqx3jqrp-5005.app.github.dev/";
+export const adminService = "https://bookish-space-waddle-jjx454p9jgqx3jqrp-5006.app.github.dev/";
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

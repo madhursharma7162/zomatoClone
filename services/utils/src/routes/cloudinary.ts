@@ -1,27 +1,27 @@
 import express from "express";
-import cloudinary from "cloudinary";
+import multer from "multer";
+import { v2 as cloudinary } from "cloudinary";
 
+const upload = multer({ storage: multer.memoryStorage() });
 const router = express.Router();
 
-router.post("/upload", async (req, res) => {
+router.post("/upload", upload.single("file"), async (req, res) => {
   try {
-    console.log("Received upload request, buffer exists:", !!req.body.buffer);
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
-    const { buffer } = req.body;
-
-    const result = await cloudinary.v2.uploader.upload(buffer, {
-      resource_type: "image", // safer than "auto"
-    });
-
-    console.log("Upload success:", result.secure_url);
-
-    res.json({ url: result.secure_url });
+    const result = await cloudinary.uploader.upload_stream(
+      {
+        folder: "rider_profiles",
+        upload_preset: "rider_profiles_unsigned",
+      },
+      (error, result) => {
+        if (error) return res.status(500).json({ message: "Upload failed", error });
+        res.json({ url: result?.secure_url });
+      }
+    ).end(req.file.buffer);
   } catch (err: any) {
-    console.error("Cloudinary REAL error:", err);
-    res.status(500).json({
-      message: "Cloudinary upload failed",
-      error: err.message,
-    });
+    console.error(err);
+    res.status(500).json({ message: "Upload failed", error: err.message });
   }
 });
 

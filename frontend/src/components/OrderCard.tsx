@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { IOrder } from "../types";
-//import { ORDER_ACTIONS } from "../utils/orderflow";
+import { ORDER_ACTIONS } from "../utils/orderflow";
 import axios from "axios";
 import { restaurantService } from "../main";
 import toast from "react-hot-toast";
@@ -33,7 +33,7 @@ const OrderCard = ({ order, onStatusUpdate }: props) => {
   const [loading, setLoading] = useState(false);
   const [retryVisible, setRetryVisible] = useState(false);
 
- // const actions = ORDER_ACTIONS[order.status] || [];
+ const actions = ORDER_ACTIONS[order.status] || [];
 
   useEffect(() => {
     if (order.status !== "ready_for_rider") {
@@ -53,7 +53,7 @@ const OrderCard = ({ order, onStatusUpdate }: props) => {
       setLoading(true);
       setRetryVisible(false);
       await axios.put(
-        `${restaurantService}/api/order/${order._id}`,
+        `${restaurantService}api/order/${order._id}`,
         { status },
         {
           headers: {
@@ -87,7 +87,7 @@ const OrderCard = ({ order, onStatusUpdate }: props) => {
       <div className="text-sm text-gray-600 space-y-1">
         {order.items.map((item, i) => (
           <p key={i}>
-            {item.name} x {item.quauntity}
+            {item.name} x {item.quantity}
           </p>
         ))}
       </div>
@@ -99,7 +99,7 @@ const OrderCard = ({ order, onStatusUpdate }: props) => {
 
       <p className="text-xs text-gray-400">Payment: {order.paymentStatus}</p>
 
-      {/* {order.paymentStatus === "paid" && actions.length > 0 && (
+      {order.paymentStatus === "paid" && actions.length > 0 && (
         <div className="flex flex-wrap gap-2 pt-2">
           {actions.map((status) => (
             <button
@@ -112,7 +112,7 @@ const OrderCard = ({ order, onStatusUpdate }: props) => {
             </button>
           ))}
         </div>
-      )} */}
+      )}
 
       {order.status === "ready_for_rider" && retryVisible && (
         <div className="pt-2">

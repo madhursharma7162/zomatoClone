@@ -5,6 +5,7 @@ import audio from "../assets/quack.mp3";
 import axios from "axios";
 import { restaurantService } from "../main";
 import OrderCard from "./OrderCard";
+import toast from "react-hot-toast";
 
 const ACTIVE_STATUSES = [
   "placed",
@@ -28,6 +29,23 @@ const RestaurantOrders = ({ restaurantId }: { restaurantId: string }) => {
     audioRef.current.load();
   }, []);
 
+  // START: EDITED PART - ROOM JOINING LOGIC
+  // This tells the Socket server to put this client into the specific restaurant's "mailbox"
+  useEffect(() => {
+    if (!socket || !restaurantId) return;
+
+    // Join the room so we can hear "order:new" events sent to this ID
+    socket.emit("join", `restaurant:${restaurantId}`);
+    console.log(`Joined socket room: restaurant:${restaurantId}`);
+
+    // Cleanup: Leave the room when component unmounts to prevent memory leaks
+    return () => {
+      socket.emit("leave", `restaurant:${restaurantId}`);
+      console.log(`Left socket room: restaurant:${restaurantId}`);
+    };
+  }, [socket, restaurantId]);
+  // END: EDITED PART
+
   const unlockAudio = () => {
     if (audioRef.current) {
       audioRef.current
@@ -47,7 +65,7 @@ const RestaurantOrders = ({ restaurantId }: { restaurantId: string }) => {
   const fetchOrders = async () => {
     try {
       const { data } = await axios.get(
-        `${restaurantService}/api/order/restaurant/${restaurantId}`,
+        `${restaurantService}api/order/restaurant/${restaurantId}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -80,6 +98,8 @@ const RestaurantOrders = ({ restaurantId }: { restaurantId: string }) => {
         });
       }
 
+      toast.success("New Order Received! 🔔");
+
       fetchOrders();
     };
 
@@ -90,6 +110,10 @@ const RestaurantOrders = ({ restaurantId }: { restaurantId: string }) => {
     };
   }, [socket, audioUnlocked]);
 
+
+
+
+  
   useEffect(() => {
     if (!socket) return;
 
@@ -142,7 +166,7 @@ const RestaurantOrders = ({ restaurantId }: { restaurantId: string }) => {
         <h3 className="text-lg font-semibold">Active Orders</h3>
 
         {activeOrders.length === 0 ? (
-          <p className="text-sm text-gray-500">No Acitve orders</p>
+          <p className="text-sm text-gray-500">No Active orders</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {activeOrders.map((order) => (

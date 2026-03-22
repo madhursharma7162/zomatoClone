@@ -43,15 +43,23 @@ export const initSocket = (server: http.Server) => {
     }
 
     const userId = user._id;
-
     socket.join(`user:${userId}`);
+
+    // ✅ ADD THIS LINE: Every user joins the global broadcast room
+    socket.join("global"); 
+    console.log(`User ${userId} joined global room`);
 
     if (user.restaurantId) {
       socket.join(`restaurant:${user.restaurantId}`);
+      // ✅ ADD THIS LOG TO VERIFY
+      console.log(`✅ Success: Joined restaurant room: restaurant:${user.restaurantId}`);
+    } else {
+      // ✅ ADD THIS LOG TO SEE IF IT'S MISSING
+      console.log(`⚠️ Warning: No restaurantId found in token for user ${userId}`);
     }
 
     console.log(`User connected: ${userId}`);
-    console.log("Socket room: ", [...socket.rooms]);
+    console.log("Active Socket rooms: ", [...socket.rooms]);
 
     socket.on("disconnect", () => {
       console.log(`User disconnected:${userId}`);

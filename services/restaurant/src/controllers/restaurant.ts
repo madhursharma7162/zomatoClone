@@ -101,20 +101,12 @@ export const fetchMyRestaurant = TryCatch(
       });
     }
 
-    // 🔥 ADD THESE LOGS
-    console.log("Logged in user ID:", req.user._id);
+    
 
     const restaurant = await Restaurant.findOne({
       ownerId: req.user._id.toString(),
     });
 
-    console.log("Restaurant fetched:", restaurant);
-
-    if (restaurant) {
-      console.log("Restaurant ownerId:", restaurant.ownerId);
-    }
-
-    //---------------
 
     if (!restaurant) {
       return res.status(200).json({
@@ -161,7 +153,7 @@ export const updateStatusRestaurant = TryCatch(
 
     const restaurant = await Restaurant.findOneAndUpdate(
       {
-        ownerId: req.user._id.toString(),
+        ownerId: req.user._id.toString()
       },
       { isOpen: status },
       { new: true },
@@ -172,6 +164,31 @@ export const updateStatusRestaurant = TryCatch(
         message: "Restaurant not found",
       });
     }
+
+
+    // ✅ ADD THIS BLOCK BELOW
+    try {
+      await axios.post(
+        `${process.env.REALTIME_SERVICE}/api/v1/internal/emit`,
+        {
+          event: "restaurant:status_update",
+          room: "global", // Broadcast to all users browsing
+          payload: {
+            restaurantId: restaurant._id.toString(),
+            isOpen: restaurant.isOpen,
+          },
+        },
+        {
+          headers: {
+            "x-internal-key": process.env.INTERNAL_SERVICE_KEY,
+          },
+        }
+      );
+      console.log(`Realtime update sent: Restaurant is now ${restaurant.isOpen ? 'Open' : 'Closed'}`);
+    } catch (error: any) {
+      console.error("Failed to emit status update:", error.message);
+    }
+    // ✅ END OF ADDED BLOCK
 
     res.json({
       message: "Restaurant status Updated",

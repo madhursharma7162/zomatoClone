@@ -27,7 +27,7 @@ export interface AppContextType {
   cart: ICart[] | null;
   fetchCart: () => Promise<void>;
   subTotal: number;
-  quauntity: number;
+  quantity: number;
 }
 
 export interface IRestaurant {
@@ -65,7 +65,7 @@ export interface ICart {
   userId: string;
   restaurantId: string | IRestaurant;
   itemId: string | IMenuItem;
-  quauntity: number;
+  quantity: number;
   cretedAt: Date;
   updatedAt: Date;
 }
@@ -96,7 +96,7 @@ export interface IOrder {
   addressId: string;
 
   deliveryAddress: {
-    fromattedAddress: string;
+    formattedAddress: string;
     mobile: number;
     latitude: number;
     longitude: number;

@@ -1,10 +1,15 @@
 import express from 'express';
 import dotenv from "dotenv";
-import cloudinary from "cloudinary";
+import { v2 as cloudinary } from "cloudinary";
 import cors from "cors";
 import uploadRoutes from './routes/cloudinary.js';
 import paymentRoutes from './routes/payment.js';
 import { connectRabbitMQ } from './config/rabbitmq.js';
+
+
+console.log("Server time:", new Date().toISOString());
+console.log("Unix timestamp:", Math.floor(Date.now() / 1000));
+
 
 dotenv.config();
 connectRabbitMQ();
@@ -32,7 +37,7 @@ if(!CLOUD_NAME || !CLOUD_API_KEY || !CLOUD_SECRET_KEY){
     throw new Error("Missing Cloudinary environment variables");
 }
 
-cloudinary.v2.config({
+cloudinary.config({
     cloud_name: CLOUD_NAME,
     api_key: CLOUD_API_KEY,
     api_secret: CLOUD_SECRET_KEY,

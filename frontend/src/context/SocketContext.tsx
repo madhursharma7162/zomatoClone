@@ -50,6 +50,34 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       console.log("Socket Error:", err.message);
     });
 
+    // ============================================================
+    // ✅ EXISTING: HANDLE RESTAURANT STATUS UPDATES
+    // ============================================================
+    socket.on("restaurant:status_update", (data) => {
+      console.log("📢 Real-time Status Update Received:", data);
+
+      window.dispatchEvent(new Event("refresh-restaurant-list"));
+    });
+
+    // ============================================================
+    // ✅ NEW: HANDLE NEW ORDER FOR RIDER  🔥🔥🔥
+    // ============================================================
+    socket.on("order:available", (data) => {
+      console.log("🚀 New Order Received:", data);
+
+      // Broadcast event to entire app
+      window.dispatchEvent(
+        new CustomEvent("new-order-available", { detail: data })
+      );
+    });
+
+    // ============================================================
+    // ✅ OPTIONAL DEBUG (REMOVE LATER)
+    // ============================================================
+    socket.onAny((event, data) => {
+      console.log("📡 EVENT:", event, data);
+    });
+
     return () => {
       socket.disconnect();
       socketRef.current = null;

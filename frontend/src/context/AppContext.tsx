@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import axios from "axios";
 import {
   createContext,
@@ -25,23 +26,25 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [city, setCity] = useState("Fetching Location");
 
+  const hasFetchedLocation = useRef(false);
+
   async function fetchUser() {
     try {
       const token = localStorage.getItem("token");
-      if (!token) return; // Don't attempt fetch if no token exists
+      if (!token) return;
 
       const { data } = await axios.get(`${authService}/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        withCredentials: true, // CRITICAL: This allows CORS cookies/headers
+        withCredentials: true,
       });
 
       setUser(data);
       setIsAuth(true);
     } catch (error) {
       console.log("Fetch User Error:", error);
-      setIsAuth(false); // Reset state on error
+      setIsAuth(false);
     } finally {
       setLoading(false);
     }
@@ -79,15 +82,32 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     }
   }, [user]);
 
+  // 🌍 LOCATION LOGIC (OPTIMIZED + CACHED + EXPIRY)
   useEffect(() => {
-    if (location || loadingLocation) return;
+    // ✅ STEP 1: Check cache first
+    const cachedLocation = localStorage.getItem("user_location");
+
+    if (cachedLocation) {
+      const parsed = JSON.parse(cachedLocation);
+
+      // ✅ STEP 2: Check expiry (30 min)
+      if (Date.now() - parsed.timestamp < 1000 * 60 * 30) {
+        setLocation(parsed.location);
+        setCity(parsed.city);
+        hasFetchedLocation.current = true;
+        return;
+      }
+    }
+
+    // Prevent duplicate calls
+    if (location || loadingLocation || hasFetchedLocation.current) return;
+
     if (!navigator.geolocation) {
-      alert(
-        "Geolocation is not supported by your browser. Please Allow Location to continue",
-      );
+      console.warn("Geolocation not supported");
       return;
     }
 
+    hasFetchedLocation.current = true;
     setLoadingLocation(true);
 
     navigator.geolocation.getCurrentPosition(
@@ -95,29 +115,43 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         const { latitude, longitude } = position.coords;
 
         try {
-          // ✅ Use restaurant backend proxy instead of calling OpenStreetMap directly
           const { data } = await axios.get(
-            `${restaurantService}api/geocode/reverse?lat=${latitude}&lon=${longitude}`,
+            `${restaurantService}api/geocode/reverse?lat=${latitude}&lon=${longitude}`
           );
-
-          setLocation({
-            latitude,
-            longitude,
-            formattedAddress: data.display_name || "current location",
-          });
 
           const addr = data.address || {};
-          setCity(
-            data.address.city ||
-              data.address.town ||
-              data.address.village ||
-              data.address.suburb ||
-              "Your Location",
-          );
+          const detectedCity =
+            addr.city ||
+            addr.town ||
+            addr.village ||
+            addr.suburb ||
+            "Your Location";
 
-          // setLoadingLocation(false);
-        } catch (error) {
+          const locationData = {
+            latitude,
+            longitude,
+            formattedAddress: data.display_name || "Current Location",
+          };
+
+          setLocation(locationData);
+          setCity(detectedCity);
+
+          // ✅ STEP 3: Save to cache
+          localStorage.setItem(
+            "user_location",
+            JSON.stringify({
+              location: locationData,
+              city: detectedCity,
+              timestamp: Date.now(),
+            })
+          );
+        } catch (error: any) {
           console.warn("Geocode proxy error:", error);
+
+          if (error.response?.status === 429) {
+            toast.error("Location service busy. Please wait a moment.");
+          }
+
           setCity("Location Error");
           setLocation({
             latitude,
@@ -133,7 +167,11 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         setCity("Permission Denied");
         setLoadingLocation(false);
       },
-      { enableHighAccuracy: true, timeout: 10000 },
+      {
+        enableHighAccuracy: false,
+        maximumAge: 60000, // ✅ reuse last GPS for 1 min
+        timeout: 10000,
+      }
     );
   }, []);
 
@@ -155,7 +193,8 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         subTotal,
       }}
     >
-      {children} <Toaster />
+      {children}
+      <Toaster />
     </AppContext.Provider>
   );
 };

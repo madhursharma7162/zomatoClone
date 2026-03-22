@@ -75,6 +75,29 @@ const Home = () => {
     fetchRestaurants();
   }, [location, search]);
 
+
+ // ============================================================
+  // ✅ UPDATED BLOCK: Listen for the Socket "Shout"
+  // ============================================================
+  useEffect(() => {
+    const handleRefresh = () => {
+      console.log("🔥 HOME COMPONENT: Signal Heard! Calling fetchRestaurants()...");
+      fetchRestaurants(); 
+    };
+
+    // Listen for the specific event
+    window.addEventListener("refresh-restaurant-list", handleRefresh);
+
+    return () => {
+      window.removeEventListener("refresh-restaurant-list", handleRefresh);
+    };
+    // Adding fetchRestaurants here ensures the listener uses the latest version of the function
+  }, [fetchRestaurants]); 
+  // ============================================================
+
+
+
+
   if( loading || !location){
     return (
       <div className="flex h-[60vh] items-center justify-center">

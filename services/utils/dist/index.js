@@ -5,11 +5,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
-const cloudinary_1 = __importDefault(require("cloudinary"));
+const cloudinary_1 = require("cloudinary");
 const cors_1 = __importDefault(require("cors"));
 const cloudinary_js_1 = __importDefault(require("./routes/cloudinary.js"));
 const payment_js_1 = __importDefault(require("./routes/payment.js"));
 const rabbitmq_js_1 = require("./config/rabbitmq.js");
+console.log("Server time:", new Date().toISOString());
+console.log("Unix timestamp:", Math.floor(Date.now() / 1000));
 dotenv_1.default.config();
 (0, rabbitmq_js_1.connectRabbitMQ)();
 const app = (0, express_1.default)();
@@ -26,7 +28,7 @@ const { CLOUD_NAME, CLOUD_API_KEY, CLOUD_SECRET_KEY } = process.env;
 if (!CLOUD_NAME || !CLOUD_API_KEY || !CLOUD_SECRET_KEY) {
     throw new Error("Missing Cloudinary environment variables");
 }
-cloudinary_1.default.v2.config({
+cloudinary_1.v2.config({
     cloud_name: CLOUD_NAME,
     api_key: CLOUD_API_KEY,
     api_secret: CLOUD_SECRET_KEY,

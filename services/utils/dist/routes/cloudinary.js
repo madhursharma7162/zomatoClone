@@ -4,24 +4,26 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const cloudinary_1 = __importDefault(require("cloudinary"));
+const multer_1 = __importDefault(require("multer"));
+const cloudinary_1 = require("cloudinary");
+const upload = (0, multer_1.default)({ storage: multer_1.default.memoryStorage() });
 const router = express_1.default.Router();
-router.post("/upload", async (req, res) => {
+router.post("/upload", upload.single("file"), async (req, res) => {
     try {
-        console.log("Received upload request, buffer exists:", !!req.body.buffer);
-        const { buffer } = req.body;
-        const result = await cloudinary_1.default.v2.uploader.upload(buffer, {
-            resource_type: "image", // safer than "auto"
-        });
-        console.log("Upload success:", result.secure_url);
-        res.json({ url: result.secure_url });
+        if (!req.file)
+            return res.status(400).json({ message: "No file uploaded" });
+        const result = await cloudinary_1.v2.uploader.upload_stream({
+            folder: "rider_profiles",
+            upload_preset: "rider_profiles_unsigned",
+        }, (error, result) => {
+            if (error)
+                return res.status(500).json({ message: "Upload failed", error });
+            res.json({ url: result?.secure_url });
+        }).end(req.file.buffer);
     }
     catch (err) {
-        console.error("Cloudinary REAL error:", err);
-        res.status(500).json({
-            message: "Cloudinary upload failed",
-            error: err.message,
-        });
+        console.error(err);
+        res.status(500).json({ message: "Upload failed", error: err.message });
     }
 });
 exports.default = router;

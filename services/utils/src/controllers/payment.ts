@@ -142,7 +142,7 @@ export const verifyStripe = async (req: Request, res: Response) => {
 
     if (!orderId) {
       return res.status(400).json({
-        message: "orderid not found in stripe session",
+        message: "Order id not found in stripe session",
       });
     }
 

@@ -6,7 +6,7 @@ import Cart from "../models/Cart.js";
 import { IMenuItem } from "../models/MenuItems.js";
 import Order from "../models/Order.js";
 import Restaurant, { IRestaurant } from "../models/Restaurant.js";
-//import { publishEvent } from "../config/order.publisher.js";
+import { publishEvent } from "../config/order.publisher.js";
 
 export const createOrder = TryCatch(async (req: AuthenticatedRequest, res) => {
   const user = req.user;
@@ -157,6 +157,21 @@ export const createOrder = TryCatch(async (req: AuthenticatedRequest, res) => {
     expiresAt,
   });
 
+  // ✅ ADD THIS
+await axios.post(
+  `${process.env.REALTIME_SERVICE}/api/v1/internal/emit`,
+  {
+    event: "order:new",
+    room: `restaurant:${restaurantId.toString()}`,
+    payload: order,
+  },
+  {
+    headers: {
+      "x-internal-key": process.env.INTERNAL_SERVICE_KEY,
+    },
+  }
+);
+
   await Cart.deleteMany({ userId: user._id });
 
   res.json({
@@ -306,11 +321,11 @@ export const updateOrderStatus = TryCatch(
         order._id
       );
 
-      // await publishEvent("ORDER_READY_FOR_RIDER", {
-      //   orderId: order._id.toString(),
-      //   restaurantId: restaurant._id.toString(),
-      //   location: restaurant.autoLocation,
-      // });
+      await publishEvent("ORDER_READY_FOR_RIDER", {
+        orderId: order._id.toString(),
+        restaurantId: restaurant._id.toString(),
+        location: restaurant.autoLocation,
+      });
 
       console.log("Event Published successfully");
     }
@@ -387,7 +402,7 @@ export const assignRiderToOrder = TryCatch(async (req, res) => {
 
   if (order?.riderId !== null) {
     return res.status(400).json({
-      message: "Order Already taken",
+      message: "Order already taken!!",
     });
   }
 

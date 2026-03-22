@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IMenuItem extends Document{
-    restaurantId: mongoose.Types.ObjectsId;
+    restaurantId: mongoose.Types.ObjectId;
     name: string;
     description: string;
     image?: string;
