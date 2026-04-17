@@ -20,7 +20,7 @@ router.get("/reverse", async (req, res) => {
     });
 
     res.json(response.data);
-  } catch (err) {
+  } catch (err:any) {
     // 🔍 Log the specific status to the terminal
     if (err.response) {
       console.error(`OSM API Error: ${err.response.status} - ${err.response.statusText}`);
